@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ping-pong</title>
+    <style>
+        body{
+            background-color: black;
+        }
+        canvas{
+            display: block;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameZone" width="640" height="480"></canvas><!--Игровая зона-->
+    <canvas id="ballZone" width="640" height="480"><!--Зона для прорисовки мяча поверх игровой зоны-->
+
+    <script>
+        let gameZone = document.getElementById('gameZone');
+        let ctx = gameZone.getContext('2d');
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(20,20,600,20);//Верхняя стенка
+        ctx.fillRect(20,460,600,20);//Нижняя стенка
+
+        ctx.fillStyle = 'gray';
+        for(i=1;i<12;i++){
+            ctx.fillRect(320,40*i,20,20);//"Сетка" между стенками
+        }
+
+        ctx.fillStyle = 'white';//Левая платформа
+        ctx.fillRect(20,200,20,60);
+        let y1 = 200;//значение высоты для платформы
+        
+        document.addEventListener('keydown', moveLeft);
+        function moveLeft(e){//функция для движения левой платформы
+        if (y1>40 && y1<400){
+            if (e.keyCode == 87){
+                //Движение вверх
+                ctx.clearRect(20,40,20,420)
+                y1 = y1-20;
+                ctx.fillRect(20,y1,20,60);
+            }
+            else if(e.keyCode == 83){
+                //Движение вниз
+                ctx.clearRect(20,40,20,420)
+                y1 = y1+20;
+                ctx.fillRect(20,y1,20,60);
+            }
+        }
+        else if(y1==40){
+            y1 = y1+20;
+        }
+        else{
+            y1 = y1-20;
+        }
+        }
+
+        ctx.fillStyle = 'white';//Правая
+        ctx.fillRect(600,200,20,60);
+        let y2 = 200;//значение высоты для платформы
+        
+        document.addEventListener('keydown', moveRight);
+        function moveRight(e){//функция для движения правой платформы
+        if (y2>40 && y2<400){
+            if (e.keyCode == 38){
+                //Движение вверх
+                ctx.clearRect(600,40,20,420)
+                y2 = y2-20;
+                ctx.fillRect(600,y2,20,60);
+            }
+            else if(e.keyCode == 40){
+                //Движение вниз
+                ctx.clearRect(600,40,20,420)
+                y2 = y2+20;
+                ctx.fillRect(600,y2,20,60);
+            }
+        }
+        else if(y2==40){
+            y2 = y2+20;
+        }
+        else{
+            y2 = y2-20;
+        }
+        }
+
+
+        let ballZone = document.getElementById('ballZone');
+        let ctx2 = ballZone.getContext('2d');
+        ctx2.fillStyle = 'white';
+        ctx2.fillRect(320,220,20,20);
+
+        function moveTime(){
+            setInterval(move, 1000);
+        };
+        function move(){
+            let x = 320;
+            if (x<600) x +=20;
+            else x=320;
+            ctx2.clearRect(0,0,ballZone.width, ballZone.height);
+            ctx2.fillRect(x,220,20,20);
+            moveTime();
+        }
+        moveTime();
+    </script>
+</body>
+</html>

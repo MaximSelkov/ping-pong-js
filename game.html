@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping-Pong</title>
+    <style>
+        body {
+          height: 100%;
+          margin: 0;
+          background-color: purple;
+        }
+        .container{
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .gameInfo {
+          background: black;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-around;
+          width: 640px;
+        }
+        .gameInfo p{
+          font-size: 30px;
+        }
+        .gameInfo p:first-child{
+          color: red;
+        }
+        .gameInfo p:last-child{
+          color: blue;
+        }
+        .gameContainer {
+          display: flex;
+          background: black;
+          width: 640px;
+          height: 480px;
+        }
+      </style>
+</head>
+<body>
+    <div class="container">
+        <div class="gameInfo">
+            <p id="leftScore">0</p>
+            <p id="rightScore">0</p>
+        </div>
+        <div class="gameContainer">
+            <canvas width="640" height="480" id="gameZone"></canvas><!--Игровая зона-->
+        </div>
+    </div>
+    
+    
+    <script>
+        const canvas = document.getElementById('gameZone');
+        const context = canvas.getContext('2d');
+        const grid = 20;
+        const paddleHeight = grid * 5;
+        const maxPaddleY = canvas.height - grid - paddleHeight;
+        var paddleSpeed = 6;
+        var ballSpeed = 3;
+        var leftScore = document.getElementById('leftScore');
+        var rightScore = document.getElementById('rightScore');
+
+        //Левая платформа
+        const leftPaddle = {
+        x: grid * 2,
+        y: canvas.height / 2 - paddleHeight / 2,
+        width: grid,
+        height: paddleHeight,
+        dy: 0
+        };
+
+        //Правая платформа 
+        const rightPaddle = {
+        x: canvas.width - grid * 3,
+        y: canvas.height / 2 - paddleHeight / 2,
+        width: grid,
+        height: paddleHeight,
+        dy: 0
+        };
+
+        //Мяч
+        const ball = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        width: grid,
+        height: grid,
+        //На старте мяч пока не забит, поэтому убираем признак того, что мяч нужно ввести в игру заново
+        resetting: false,
+        //Подаём мяч в правый верхний угол
+        dx: ballSpeed,
+        dy: -ballSpeed
+        };
+
+        //Описываем коллизии
+        function collides(obj1, obj2) {
+         return obj1.x < obj2.x + obj2.width &&
+         obj1.x + obj1.width > obj2.x &&
+         obj1.y < obj2.y + obj2.height &&
+         obj1.y + obj1.height > obj2.y;
+        }
+
+        //Главный цикл игры
+        function loop() {
+        // Очищаем игровое поле
+        requestAnimationFrame(loop);
+        context.clearRect(0,0,canvas.width,canvas.height);
+        leftPaddle.y += leftPaddle.dy;
+        rightPaddle.y += rightPaddle.dy;
+        //Ограничение высоты снизу для левой платформы
+        if (leftPaddle.y < grid) {
+        leftPaddle.y = grid;
+        }
+        //Ограничение высоты сверху для левой платформы
+        else if (leftPaddle.y > maxPaddleY) {
+        leftPaddle.y = maxPaddleY;
+        }
+        //Ограничение высоты снизу для правой платформы
+        if (rightPaddle.y < grid) {
+        rightPaddle.y = grid;
+        }
+        //Ограничение высоты сверху для правой платформы
+        else if (rightPaddle.y > maxPaddleY) {
+        rightPaddle.y = maxPaddleY;
+        }
+        //Рисуем платформы
+        context.fillStyle = 'red';
+        context.fillRect(leftPaddle.x, leftPaddle.y, leftPaddle.width, leftPaddle.height);
+        context.fillStyle = 'blue';
+        context.fillRect(rightPaddle.x, rightPaddle.y, rightPaddle.width, rightPaddle.height);
+        context.fillStyle = 'white';
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+        //Если мяч коснулся сверху
+        if (ball.y < grid) {
+        ball.y = grid;
+        ball.dy *= -1;
+        }
+        //Если мяч коснулся снизу
+        else if (ball.y + grid > canvas.height - grid) {
+        ball.y = canvas.height - grid * 2;
+        ball.dy *= -1;
+        }
+        if ( (ball.x < 0 || ball.x > canvas.width) && !ball.resetting) {
+            // Помечаем, что мяч перезапущен, чтобы не зациклиться
+            ball.resetting = true;
+            // Даём секунду на подготовку игрокам
+            setTimeout(() => {
+                ball.resetting = false;
+                // Снова запускаем мяч
+                ball.x = canvas.width / 2;
+                ball.y = canvas.height / 2;
+            }, 1000);
+        }
+        // Если мяч коснулся левой платформы
+        if (collides(ball, leftPaddle)) {
+        ball.dx *= -1;
+        ball.x = leftPaddle.x + leftPaddle.width;
+        }
+        //Если мяч коснулся правой платформы
+        else if (collides(ball, rightPaddle)) {
+        ball.dx *= -1;
+        ball.x = rightPaddle.x - ball.width;
+        }
+        context.fillRect(ball.x, ball.y, ball.width, ball.height);
+        // Рисуем стены
+        context.fillStyle = 'lightgrey';
+        context.fillRect(0, 0, canvas.width, grid);
+        context.fillRect(0, canvas.height - grid, canvas.width, canvas.height);
+        // Рисуем сетку посередине
+        context.fillStyle = 'gray';
+        for (let i = grid; i < canvas.height - grid; i += grid * 3) {
+            context.fillRect(canvas.width / 2, i, grid, grid);
+        }
+        //Счёт игроков
+        if(ball.x<(canvas.width / 2)){
+            leftScore.value += 1;
+        }
+        // Отслеживаем нажатия клавиш
+        document.addEventListener('keydown', function (e) {
+        // Если нажата клавиша вверх
+        if (e.which === 38) {
+            rightPaddle.dy = -paddleSpeed;
+        }
+        // Если нажата клавиша вниз,
+        else if (e.which === 40) {
+            // то двигаем правую платформу вниз
+            rightPaddle.dy = paddleSpeed;
+        }
+        // Если нажата клавиша W 
+        if (e.which === 87) {
+            leftPaddle.dy = -paddleSpeed;
+        }
+        // Если нажата клавиша S,
+        else if (e.which === 83) {
+            leftPaddle.dy = paddleSpeed;
+        }
+        });
+        
+        document.addEventListener('keyup', function (e) {
+        // Если это стрелка вверх или вниз,
+        if (e.which === 38 || e.which === 40) {
+            // останавливаем правую платформу
+            rightPaddle.dy = 0;
+        }
+        // А если это W или S, 
+        if (e.which === 83 || e.which === 87) {
+            // останавливаем левую платформу
+            leftPaddle.dy = 0;
+        }
+        });
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
